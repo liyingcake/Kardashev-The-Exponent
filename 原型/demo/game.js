@@ -87,6 +87,50 @@
     location.reload();
   }
 
+  // ---- 导出 / 导入存档（调试用）----
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(
+        () => log('📤 存档已复制到剪贴板', ''),
+        () => textareaCopy(t));
+    } else textareaCopy(t);
+  }
+  function textareaCopy(t) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      log('📤 存档已复制到剪贴板', '');
+    } catch (e) { log('📤 导出失败：' + e.message, ''); }
+  }
+  function exportSave() {
+    save();
+    copyText(JSON.stringify(state));
+  }
+  function importSave() {
+    const raw = prompt('粘贴存档 JSON（来自“导出存档”）：');
+    if (!raw) return;
+    try {
+      const s = JSON.parse(raw);
+      if (typeof s.P !== 'number' || s.P <= 0) throw new Error('缺少有效功率字段');
+      Object.assign(state, s);
+      // 补丁缺失字段
+      if (!state.eventQueue) state.eventQueue = [];
+      if (!state.traits) state.traits = {};
+      if (!state.buildings) state.buildings = {};
+      if (!state.log) state.log = [];
+      if (state.activeEvent === undefined) state.activeEvent = null;
+      if (state.traitPending === undefined) state.traitPending = false;
+      if (state.nextEventTimer === undefined) state.nextEventTimer = 0;
+      save();
+      renderStructure();
+      refresh();
+      log('📥 存档已导入（功率 ' + fmtP(state.P) + '）', '');
+    } catch (e) { alert('导入失败：' + e.message); }
+  }
+
   // ---- 日志 ----
   function log(msg, cls) {
     state.log.unshift({ t: Date.now(), msg, cls });
@@ -145,7 +189,7 @@
     $('eraname').textContent = era.icon + ' ' + era.name;
 
     // 更替按钮
-    const canUp = state.P >= nextTarget(state.era) && !state.traitPending;
+    const canUp = state.P >= nextTarget(state.era) && !state.traitPending && state.era < 4;
     $('eraupgrade-box').classList.toggle('hidden', !canUp);
 
     renderSources();
@@ -312,16 +356,24 @@
       '<span class="t-growth">+' + (t.growth * 100).toFixed(1) + '%/s</span></div>').join('');
     tl.querySelectorAll('[data-trait]').forEach(d => {
       d.addEventListener('click', () => {
-        const t = DATA.traits.find(x => x.id === d.dataset.trait);
-        state.traits[t.id] = true;
-        state.era += 1;
-        state.traitPending = false;
-        state.activeEvent = null;
+        // 先关 UI（即使后续异常也不卡界面）
         $('eraOverlay').classList.add('hidden');
         $('traitOverlay').classList.add('hidden');
-        log('⚜️ 纪元更替 → ' + nextEra.icon + ' ' + nextEra.name + '（特质：' + t.name + '）', 'era-log');
-        scheduleEvent();
-        renderStructure();
+        try {
+          const t = DATA.traits.find(x => x.id === d.dataset.trait);
+          if (!t) { log('⚠️ 特质数据异常', ''); return; }
+          state.traits[t.id] = true;
+          state.era += 1;
+          state.traitPending = false;
+          state.activeEvent = null;
+          const cur = DATA.eras[state.era];
+          log('⚜️ 纪元更替 → ' + cur.icon + ' ' + cur.name + '（特质：' + t.name + '）', 'era-log');
+          scheduleEvent();
+          renderStructure();
+        } catch (err) {
+          console.error('trait selection error:', err);
+          log('⚠️ 特质选择出错：' + err.message, '');
+        }
       });
     });
   }
@@ -400,6 +452,15 @@
   $('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('modal').classList.add('hidden'); });
   $('traitOverlay').addEventListener('click', (e) => { if (e.target.id === 'traitOverlay') $('traitOverlay').classList.add('hidden'); });
   document.querySelector('.title').addEventListener('dblclick', () => { if (confirm('重置进度？')) hardReset(); });
+
+  // ---- 调试工具绑定（元素可能不存在于旧缓存 HTML，判空保护）----
+  const dbg = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+  dbg('btn-save', () => { save(); log('💾 已手动保存', ''); });
+  dbg('btn-export', exportSave);
+  dbg('btn-import', importSave);
+  dbg('btn-reset', () => { if (confirm('完整重置：清除存档并重新开始？')) hardReset(); });
+  dbg('btn-cheat-e', () => { state.energy += 1e6; log('⚡ 调试：能量 +1,000,000 J', ''); });
+  dbg('btn-cheat-r', () => { state.research += 5000; log('🧪 调试：科研 +5000', ''); });
 
   // ---- 启动 ----
   load();

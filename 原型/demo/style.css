@@ -85,7 +85,7 @@ main { display:grid; grid-template-columns: 320px 1fr 300px; gap:14px; padding:1
 #log .era-log { color:#ffd97a; }
 
 /* ---- 弹层 ---- */
-.modal { position:fixed; inset:0; background:rgba(2,4,12,.72); display:flex; align-items:center; justify-content:center; z-index:50; }
+.modal { position:fixed; inset:0; background:rgba(2,4,12,.72); display:flex; align-items:center; justify-content:center; z-index:70; }
 .modal-box { background:#0c1734; border:1px solid #33518f; border-radius:12px; padding:22px; max-width:460px; width:90%; max-height:80vh; overflow-y:auto; }
 .modal-box h2 { color:#ffd97a; margin-bottom:10px; }
 .card-body { font-size:13px; line-height:1.8; color:#c6d4f2; }
@@ -95,7 +95,7 @@ main { display:grid; grid-template-columns: 320px 1fr 300px; gap:14px; padding:1
 
 /* ---- 纪元演出 ---- */
 .era-overlay { position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; }
-.era-veil { position:absolute; inset:0; background:radial-gradient(circle, #1b2f66cc 0%, #02040ac 80%); animation:veil 1.2s ease; }
+.era-veil { position:absolute; inset:0; background:radial-gradient(circle, #1b2f66cc 0%, #02040acc 80%); animation:veil 1.2s ease; }
 .era-content { position:relative; text-align:center; animation:pop .8s ease; }
 .era-icon { font-size:72px; }
 .era-big { font-size:44px; font-weight:800; color:#ffe9a8; margin:10px 0; text-shadow:0 0 24px #ffd97a88; }
@@ -114,6 +114,12 @@ main { display:grid; grid-template-columns: 320px 1fr 300px; gap:14px; padding:1
 .trait-item .t-name { font-weight:700; color:#ffe9a8; }
 .trait-item .t-desc { font-size:12px; color:#9fb2dd; }
 .trait-item .t-growth { font-size:11px; color:#7fe0a8; margin-left:auto; }
+
+/* ---- 调试工具 ---- */
+.debug-box { margin-top:12px; padding:8px; border:1px dashed #33518f; border-radius:8px; background:rgba(10,16,34,.5); }
+.debug-box h2 { font-size:12px; color:#8fa2cd; margin:0 0 6px; border:none; padding:0; }
+.debug-row { display:flex; gap:6px; flex-wrap:wrap; }
+.debug-row .btn { flex:1; min-width:64px; padding:5px 6px; font-size:11px; text-align:center; }
 
 footer { text-align:center; color:#4d5f8a; font-size:11px; padding:16px; }
 
