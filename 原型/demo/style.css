@@ -1,0 +1,118 @@
+/* 《文明指数》教学段原型 — 暗色太空风 */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:"Segoe UI","Microsoft YaHei",sans-serif;
+  background: radial-gradient(ellipse at 20% 0%, #0b1633 0%, #050a18 55%, #02040a 100%);
+  color:#cfd8ee; min-height:100vh;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, #fff, transparent 40%),
+    radial-gradient(1px 1px at 32% 68%, #bfd, transparent 40%),
+    radial-gradient(1.5px 1.5px at 58% 12%, #fff, transparent 40%),
+    radial-gradient(1px 1px at 78% 42%, #cfc, transparent 40%),
+    radial-gradient(1px 1px at 90% 80%, #fff, transparent 40%),
+    radial-gradient(ellipse at 20% 0%, #0b1633 0%, #050a18 55%, #02040a 100%);
+}
+header { padding:14px 20px 6px; }
+.title { font-size:22px; font-weight:700; color:#ffe9a8; letter-spacing:1px; }
+.title .sub { font-size:12px; color:#7f92bd; font-weight:400; margin-left:10px; }
+
+/* ---- K 刻度尺 ---- */
+.kbar-wrap { margin-top:10px; }
+.kbar-label { font-size:13px; color:#9fb2dd; margin-bottom:4px; }
+.kbar { height:14px; background:#0a1430; border:1px solid #24406e; border-radius:7px; overflow:hidden; position:relative; }
+.kbar-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg,#2a6bd8,#53d8ff 60%,#ffe9a8);
+  box-shadow:0 0 12px #53d8ff88; transition:width .3s;
+}
+.kbar-targets { position:relative; height:18px; font-size:10px; color:#6f82ae; }
+.kbar-targets span { position:absolute; transform:translateX(-50%); }
+.kbar-mark { position:absolute; right:-2px; top:-3px; width:3px; height:20px; background:#ff5d5d; display:none; }
+
+/* ---- 三栏 ---- */
+main { display:grid; grid-template-columns: 320px 1fr 300px; gap:14px; padding:10px 20px; align-items:start; }
+.col { background:rgba(10,18,40,.55); border:1px solid #1d2f55; border-radius:10px; padding:12px; }
+.col h2 { font-size:14px; color:#ffd97a; margin:10px 0 8px; border-bottom:1px solid #223457; padding-bottom:4px; }
+.col h2:first-child { margin-top:0; }
+.hint { font-size:11px; color:#7184af; font-weight:400; }
+
+.stat-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; border-bottom:1px dashed #17274a; }
+.stat-row span { color:#8fa2cd; }
+.stat-row b { color:#e8f0ff; font-variant-numeric:tabular-nums; }
+
+/* ---- 按钮 ---- */
+.btn {
+  border:1px solid #2f4a80; background:#14254a; color:#cfe0ff;
+  padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; width:100%;
+  transition:all .15s; text-align:left;
+}
+.btn:hover:not(:disabled) { background:#1d3570; border-color:#4a72c4; }
+.btn:disabled { opacity:.35; cursor:not-allowed; }
+.btn-gold { background:linear-gradient(135deg,#b98a2e,#e8c05a); color:#241a02; font-weight:700; border:none; text-align:center; }
+.btn-gold:hover:not(:disabled) { filter:brightness(1.12); }
+.hidden { display:none !important; }
+
+/* ---- 能源/设施/科技卡片 ---- */
+.src-item, .bld-item, .tech-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 9px; margin:5px 0; border:1px solid #22345c; border-radius:7px;
+  background:rgba(20,36,72,.4); cursor:pointer; transition:all .15s;
+}
+.src-item:hover, .bld-item:hover, .tech-item:hover { background:rgba(35,60,115,.5); border-color:#4a72c4; }
+.src-item.active { border-color:#53d8ff; box-shadow:0 0 8px #53d8ff55; }
+.tech-item.bought { border-color:#2fae6a; background:rgba(20,60,45,.35); }
+.tech-item .t-name { font-size:13px; }
+.tech-item .t-cost { font-size:11px; color:#ffd97a; }
+.tech-item .t-flag { font-size:11px; color:#53d8ff; }
+.bld-item .b-cost { font-size:11px; color:#9fe8ff; }
+.bld-item .b-pct { font-size:11px; color:#7fe0a8; }
+.src-item .s-growth { font-size:11px; color:#7fe0a8; }
+.src-item .s-lock { font-size:11px; color:#6f82ae; }
+
+/* ---- 事件面板 ---- */
+.panel { border:1px solid #22345c; border-radius:7px; padding:10px; background:rgba(20,36,72,.4); margin:5px 0; }
+#eventPanel { border-color:#ff8a5d; background:rgba(90,40,20,.35); }
+#eventPanel h3 { color:#ffb38a; font-size:14px; margin-bottom:6px; }
+.cause-chain { font-size:12px; color:#e8c9b0; padding:6px 10px; background:#1a0f08aa; border-radius:6px; margin:6px 0; line-height:1.6; }
+.opt-btn { margin:5px 0; }
+.hint-box { font-size:12px; line-height:1.7; color:#aebdde; }
+.hint-box b { color:#ffd97a; }
+.src { font-size:10px; color:#6f82ae; margin-top:6px; }
+
+/* ---- 日志 ---- */
+#log { max-height:240px; overflow-y:auto; font-size:11px; color:#9fb2dd; line-height:1.7; }
+#log div { padding:2px 0; border-bottom:1px dashed #16264a; }
+#log .era-log { color:#ffd97a; }
+
+/* ---- 弹层 ---- */
+.modal { position:fixed; inset:0; background:rgba(2,4,12,.72); display:flex; align-items:center; justify-content:center; z-index:50; }
+.modal-box { background:#0c1734; border:1px solid #33518f; border-radius:12px; padding:22px; max-width:460px; width:90%; max-height:80vh; overflow-y:auto; }
+.modal-box h2 { color:#ffd97a; margin-bottom:10px; }
+.card-body { font-size:13px; line-height:1.8; color:#c6d4f2; }
+.card-body b { color:#53d8ff; }
+.card-title { font-size:18px; color:#ffe9a8; margin-bottom:8px; }
+.card-close { margin-top:14px; }
+
+/* ---- 纪元演出 ---- */
+.era-overlay { position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; }
+.era-veil { position:absolute; inset:0; background:radial-gradient(circle, #1b2f66cc 0%, #02040ac 80%); animation:veil 1.2s ease; }
+.era-content { position:relative; text-align:center; animation:pop .8s ease; }
+.era-icon { font-size:72px; }
+.era-big { font-size:44px; font-weight:800; color:#ffe9a8; margin:10px 0; text-shadow:0 0 24px #ffd97a88; }
+.era-desc { color:#c6d4f2; font-size:15px; margin-bottom:18px; }
+@keyframes veil { from { opacity:0; } to { opacity:1; } }
+@keyframes pop { from { transform:scale(.7); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+/* ---- 特质 ---- */
+.trait-list { display:flex; flex-direction:column; gap:8px; }
+.trait-item {
+  display:flex; gap:10px; align-items:center; padding:10px; border:1px solid #33518f;
+  border-radius:8px; cursor:pointer; background:rgba(20,36,72,.45); transition:all .15s;
+}
+.trait-item:hover { border-color:#ffd97a; background:rgba(40,60,110,.5); }
+.trait-item .t-icon { font-size:24px; }
+.trait-item .t-name { font-weight:700; color:#ffe9a8; }
+.trait-item .t-desc { font-size:12px; color:#9fb2dd; }
+.trait-item .t-growth { font-size:11px; color:#7fe0a8; margin-left:auto; }
+
+footer { text-align:center; color:#4d5f8a; font-size:11px; padding:16px; }

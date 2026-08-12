@@ -1,7 +1,7 @@
 # 中间产物：数据核实轮抓取的网页/接口缓存（不应入库）
-*.html
-*.pdf
-*.json
+数据核实/*.html
+数据核实/*.pdf
+数据核实/*.json
 owid_energy_data.csv
 owid_pec.csv
 extract_*.ps1

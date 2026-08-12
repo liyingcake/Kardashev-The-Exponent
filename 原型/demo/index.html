@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明指数 · 教学段原型（K 0.0 → 0.4）</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 顶部：标题 + K 刻度尺 -->
+  <header>
+    <div class="title">文明指数 <span class="sub">Kardashev: The Exponent · 教学段原型</span></div>
+    <div class="kbar-wrap">
+      <div class="kbar-label">K <span id="kval">0.000</span>
+        <span class="kbar-mark" id="kbar-mark"></span>
+        <span id="kbar-next"></span></div>
+      <div class="kbar"><div class="kbar-fill" id="kbar-fill"></div></div>
+      <div class="kbar-targets">
+        <span style="left:0%">0.0 火种</span><span style="left:25%">0.1 农耕</span>
+        <span style="left:50%">0.2 青铜</span><span style="left:75%">0.3 前工业</span>
+        <span style="left:100%">0.4 工业</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主区：三栏 -->
+  <main>
+    <!-- 左：资源与功率 -->
+    <section class="col left">
+      <h2>文明状态</h2>
+      <div class="stat-row"><span class="stat-icon">🏛️</span><span>纪元</span><b id="eraname">火种</b></div>
+      <div class="stat-row"><span class="stat-icon">⚡</span><span>总功率 P</span><b id="pval">—</b></div>
+      <div class="stat-row"><span class="stat-icon">📈</span><span>增长率</span><b id="growthval">—</b></div>
+      <div class="stat-row"><span class="stat-icon">🔋</span><span>能量储备</span><b id="energyval">—</b></div>
+      <div class="stat-row"><span class="stat-icon">🧪</span><span>科研点</span><b id="researchval">—</b></div>
+      <div class="stat-row"><span class="stat-icon">👥</span><span>人口(估)</span><b id="popval">—</b></div>
+      <div class="stat-row"><span class="stat-icon">🎯</span><span>下一纪元</span><b id="nexttarget">—</b></div>
+
+      <div id="eraupgrade-box" class="hidden">
+        <button id="btn-upgrade" class="btn btn-gold">⚜️ 纪元更替</button>
+      </div>
+
+      <h2>主导能源</h2>
+      <div id="sourceList"></div>
+
+      <h2>扩建设施 <span class="hint">（花能量 = 功率×秒）</span></h2>
+      <div id="buildList"></div>
+    </section>
+
+    <!-- 中：科技树 + 事件 + 日志 -->
+    <section class="col mid">
+      <h2>科技树 <span class="hint">（点击购买/查看）</span></h2>
+      <div id="techList"></div>
+
+      <h2>文明事件</h2>
+      <div id="eventPanel" class="panel hidden"></div>
+
+      <h2>编年史日志</h2>
+      <div id="log"></div>
+    </section>
+
+    <!-- 右：科学卡 + 说明 -->
+    <section class="col right">
+      <h2>科学知识库</h2>
+      <div class="panel hint-box">
+        <p><b>本原型的灵魂指标：</b></p>
+        <p>K = (log₁₀P − 6) / 10 —— 卡尔达肖夫指数，衡量文明功率量级。</p>
+        <p>现代人类 ≈ K 0.73。本教学段目标：从 0.0（火种）推到 0.4（工业）。</p>
+        <hr>
+        <p><b>EROI 法则：</b>能量回报率 = 产出/投入。EROI<1.5 的能源会拖垮文明。高 EROI 往往伴随高门槛。</p>
+        <hr>
+        <p class="src">推断数值标注：来自聪明的大赢鲸的思考与认知（[软数据]）<br>已核实数据见「科学卡」内来源。</p>
+      </div>
+      <div class="panel">
+        <p class="hint">点任意能源 / 科技 / 特质，弹出科学卡：真实公式、常数与来源。</p>
+      </div>
+      <h2>目标</h2>
+      <div class="panel">
+        <p>1️⃣ 购买科技提升增长率</p>
+        <p>2️⃣ 扩建设施跳升功率</p>
+        <p>3️⃣ 应对文明事件</p>
+        <p>4️⃣ 冲过纪元门槛 → 更替 → 选特质</p>
+        <p>终点：K = 0.4（早期工业）</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 通用弹层（科学卡等） -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box" id="modal-box"></div>
+  </div>
+
+  <!-- 纪元更替演出 -->
+  <div id="eraOverlay" class="era-overlay hidden">
+    <div class="era-veil"></div>
+    <div class="era-content">
+      <div class="era-icon" id="erao-icon">🔥</div>
+      <div class="era-big" id="erao-name">农耕</div>
+      <div class="era-desc" id="erao-desc"></div>
+      <button id="btn-trait" class="btn btn-gold">选择文明特质 →</button>
+    </div>
+  </div>
+
+  <!-- 特质选择 -->
+  <div id="traitOverlay" class="modal hidden">
+    <div class="modal-box">
+      <h2>文明特质 · 选其一（永久乘数）</h2>
+      <div id="traitList" class="trait-list"></div>
+      <p class="hint">特质永久提升增长率 —— 文明的特质在时代更替后保留。</p>
+    </div>
+  </div>
+
+  <footer>《文明指数》教学段垂直切片 v0.1 · 数据口径见 README/00 文档</footer>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
