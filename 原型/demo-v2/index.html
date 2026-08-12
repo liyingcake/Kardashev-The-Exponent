@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明指数 · 节点供需网络 v2</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 事件横幅（弹出式，不占正文） -->
+  <div id="eventBanner" class="event-banner hidden"></div>
+
+  <header>
+    <div class="title">文明指数 <span class="sub">Kardashev: The Exponent · 节点网络 v2</span></div>
+    <div class="kbar-wrap">
+      <div class="kbar-label">K <span id="kval">0.000</span> ｜ <span id="eraname">🔥 火种</span></div>
+      <div class="kbar"><div class="kbar-fill" id="kbar-fill"></div></div>
+      <div class="kbar-targets">
+        <span style="left:0%">0.0 火种</span><span style="left:25%">0.1 农耕</span>
+        <span style="left:50%">0.2 青铜</span><span style="left:75%">0.3 前工业</span>
+        <span style="left:100%">0.4 工业</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 左栏：状态 + 资源 + 里程碑 + 任务 -->
+    <section class="col left">
+      <h2>文明状态</h2>
+      <div class="stat-row"><span>⚡ 总功率</span><b id="pval">0 W</b></div>
+      <div class="stat-row"><span>👥 人口</span><b id="popval">—</b></div>
+      <div class="stat-row"><span>👷 工人(已用/可用)</span><b id="workerval">0/0</b></div>
+      <div class="stat-row"><span>🔋 能量池</span><b id="energyval">—</b></div>
+      <div class="stat-row"><span>🧪 科研</span><b id="researchval">—</b></div>
+
+      <h2>资源库存</h2>
+      <div id="resBars"></div>
+
+      <h2>里程碑</h2>
+      <div class="panel">
+        <div class="ni-row">🎯 目标功率 <b id="milestoneTarget" style="color:#ffd97a">—</b></div>
+        <div class="resbar-track"><div class="resbar-fill" id="milestoneBar" style="width:0%"></div></div>
+        <div class="hint" id="milestoneNext" style="margin-top:4px">—</div>
+        <div id="eraupgrade-box" class="hidden" style="margin-top:8px">
+          <button id="btn-upgrade-era" class="btn btn-gold">⚜️ 纪元更替（选特质）</button>
+        </div>
+      </div>
+
+      <h2>任务 <span class="hint">（奖励能量）</span></h2>
+      <div id="taskList" class="task-list"></div>
+
+      <h2>科技 <span class="hint">（点选解锁）</span></h2>
+      <div id="techList"></div>
+    </section>
+
+    <!-- 中栏：节点图（主画面）+ 状态条 -->
+    <section class="col mid">
+      <div class="graph-wrap">
+        <canvas id="graph" width="760" height="560" tabindex="0"></canvas>
+        <div class="graph-hint">点节点 = 选中并连线候选（目标亮绿再点）｜ Esc 取消 ｜ 右键 = 断开 ｜ 节点库选类型后点画布放置</div>
+      </div>
+      <div class="dash">
+        <div class="dash-item"><span>链 EROI（可持续 ≥3）</span><b id="eroiVal">—</b><small id="eroiState"></small></div>
+        <div class="dash-item"><span>供给</span><b id="supplyVal" style="font-size:16px">—</b></div>
+        <div class="dash-item"><span>玩法：放 → 连 → 升级</span><b style="font-size:13px;color:#8fa2cd">节点满级 Lv8</b></div>
+      </div>
+    </section>
+
+    <!-- 右栏：上下文面板（按需） -->
+    <section class="col right">
+      <h2>面板</h2>
+      <div class="panel" id="nodePanel"><p class="hint">点击节点查看详情</p></div>
+    </section>
+  </main>
+
+  <!-- 日志（可折叠）+ 调试（可折叠） -->
+  <div id="logBox" class="log-box">
+    <div class="log-head" id="btnLogToggle">📜 编年史日志 <span class="log-arrow">▾</span></div>
+    <div id="logList" class="log-list"></div>
+  </div>
+  <div id="debugBox" class="debug-box">
+    <div class="debug-head" id="btnDebugToggle">⚙ 调试 <span class="log-arrow">▾</span></div>
+    <div class="debug-body">
+      <div class="debug-row">
+        <button id="btn-save" class="btn">💾 保存</button>
+        <button id="btn-export" class="btn">📤 导出</button>
+        <button id="btn-import" class="btn">📥 导入</button>
+      </div>
+      <div class="debug-row">
+        <button id="btn-reset" class="btn">♻️ 完整重置</button>
+        <button id="btn-template" class="btn">🌲 模板</button>
+        <button id="btn-cheat-e" class="btn">⚡ +能量</button>
+        <button id="btn-cheat-r" class="btn">🧪 +科研</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tooltip" class="tooltip hidden"></div>
+
+  <!-- 纪元演出 -->
+  <div id="eraOverlay" class="era-overlay hidden">
+    <div class="era-veil"></div>
+    <div class="era-content">
+      <div class="era-icon" id="erao-icon">🔥</div>
+      <div class="era-big" id="erao-name">农耕</div>
+      <div class="era-desc" id="erao-desc"></div>
+      <button id="btn-trait" class="btn btn-gold">选择文明特质 →</button>
+    </div>
+  </div>
+  <div id="traitOverlay" class="modal hidden">
+    <div class="modal-box">
+      <h2>文明特质 · 选其一（永久）</h2>
+      <div id="traitList" class="trait-list"></div>
+      <p class="hint">特质永久生效；节点网络保留。</p>
+    </div>
+  </div>
+  <div id="modal" class="modal hidden">
+    <div class="modal-box" id="modal-box"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+  <script src="graph.js"></script>
+</body>
+</html>
