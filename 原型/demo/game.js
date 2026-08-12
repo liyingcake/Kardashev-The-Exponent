@@ -1,8 +1,9 @@
 /* ============================================================
- * 《文明指数》教学段垂直切片 — 游戏逻辑 game.js
+ * 《文明指数》教学段垂直切片 — 游戏逻辑 game.js v0.2
  * 核心循环：P 指数增长（能源+科技+特质叠加增长率）→ 能量储备
  *           → 扩建(跳升) / 科研(购买科技) → 冲纪元门槛 → 更替
- * 验证点：核心循环手感 / 科学卡 / 因果链事件 / 纪元演出+特质
+ * v0.2 修复：渲染分离（R1-R3，消除 hover 闪烁/难点击）
+ *           + Tooltip 系统（data-tip 委托）+ 暴露状态给 scene.js
  * ============================================================ */
 (function () {
   'use strict';
@@ -11,18 +12,19 @@
   // ---- 状态 ----
   const state = {
     era: 0,
-    P: 1e6,                 // 总功率 W
-    energy: 0,              // 能量储备（可花，单位 W·s ≈ J）
-    research: 0,            // 科研点
-    growthBase: 0.002,      // 基础每秒增长率
+    P: 1e6,
+    energy: 0,
+    research: 0,
+    growthBase: 0.002,
     sourceId: 'fire',
-    techs: {},              // id -> bought
-    traits: {},             // id -> owned
-    buildings: {},          // id -> count
-    events: {},             // id -> done
-    eventQueue: [],         // 待触发事件 id
+    techs: {},
+    traits: {},
+    buildings: {},
+    events: {},
+    eventQueue: [],
+    activeEvent: null,
     nextEventTimer: 0,
-    traitPending: false,    // 等待特质选择
+    traitPending: false,
     log: [],
     startedAt: Date.now(),
   };
@@ -47,7 +49,6 @@
 
   const kOf = (p) => (Math.log10(p) - 6) / 10;
   const nextTarget = (era) => Math.pow(10, 6 + era + 1);
-
   const currentEra = () => DATA.eras[state.era];
 
   // ---- 增长率 ----
@@ -59,13 +60,10 @@
     for (const tr of DATA.traits) if (state.traits[tr.id]) g += tr.growth;
     return g;
   }
-
-  // ---- 科研点速率 ----
   function researchRate() { return state.P / 1e5; }
 
   // ---- 保存 / 加载 ----
   function save() {
-    state.savedAt = Date.now();
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
   }
   function load() {
@@ -74,7 +72,6 @@
       if (!raw) return false;
       const s = JSON.parse(raw);
       Object.assign(state, s);
-      // 重建缺失字段
       if (!state.eventQueue) state.eventQueue = [];
       if (!state.traits) state.traits = {};
       if (!state.buildings) state.buildings = {};
@@ -97,7 +94,7 @@
     renderLog();
   }
 
-  // ---- 科学卡 ----
+  // ---- 科学卡（点击弹层）----
   function openCard(title, body, extra) {
     const box = $('modal-box');
     box.innerHTML = '<div class="card-title">' + title + '</div>' +
@@ -107,39 +104,55 @@
     $('modal').classList.remove('hidden');
   }
 
-  // ---- 渲染 ----
-  function render() {
-    // 顶部 K
-    const k = kOf(state.P);
-    $('kval').textContent = k.toFixed(3);
-    const pct = Math.min(100, Math.max(0, (k - 0) / 0.4 * 100));
-    $('kbar-fill').style.width = pct + '%';
-    const next = nextTarget(state.era);
-    $('kbar-next').textContent = state.P >= next ? '🎉 可更替！' : '';
-    $('kbar-next').style.cssText = state.P >= next ? 'color:#7fe0a8;margin-left:10px;' : '';
+  /* ================= Tooltip 系统 ================= */
+  const tipEl = $('tooltip');
+  let tipTimer = null;
+  function showTip(html, x, y) {
+    tipEl.innerHTML = html;
+    tipEl.classList.remove('hidden');
+    positionTip(x, y);
+  }
+  function positionTip(x, y) {
+    const r = tipEl.getBoundingClientRect();
+    let tx = x + 14, ty = y + 14;
+    if (tx + r.width > innerWidth - 8) tx = x - r.width - 14;
+    if (ty + r.height > innerHeight - 8) ty = y - r.height - 14;
+    tipEl.style.left = tx + 'px';
+    tipEl.style.top = ty + 'px';
+  }
+  function hideTip() { tipEl.classList.add('hidden'); }
+  document.addEventListener('mouseover', (e) => {
+    const t = e.target.closest('[data-tip]');
+    if (!t) { hideTip(); return; }
+    if (tipTimer) clearTimeout(tipTimer);
+    tipTimer = setTimeout(() => { showTip(t.dataset.tip, e.clientX, e.clientY); }, 150);
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!tipEl.classList.contains('hidden')) positionTip(e.clientX, e.clientY);
+  });
+  document.addEventListener('mouseout', (e) => {
+    if (tipTimer) clearTimeout(tipTimer);
+    if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('[data-tip]')) hideTip();
+  });
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+  // ---- 科技 DOM 缓存（局部刷新用）----
+  const techDom = {};
+
+  /* ================= 结构渲染（仅状态变化时调用） ================= */
+  function renderStructure() {
     const era = currentEra();
     $('eraname').textContent = era.icon + ' ' + era.name;
-    $('pval').textContent = fmtP(state.P);
-    $('growthval').textContent = (growthRate() * 100).toFixed(2) + '%/s';
-    $('energyval').textContent = fmtE(state.energy);
-    $('researchval').textContent = fmtN(state.research);
-    const pop = Math.max(1, Math.round(Math.pow(state.P / 1e6, 0.6) * 100));
-    $('popval').textContent = fmtN(pop) + ' 人';
-    $('nexttarget').textContent = 'K ' + (state.era + 1) / 10 + ' · ' + fmtP(nextTarget(state.era));
 
     // 更替按钮
-    const canUp = state.P >= next && !state.traitPending;
+    const canUp = state.P >= nextTarget(state.era) && !state.traitPending;
     $('eraupgrade-box').classList.toggle('hidden', !canUp);
 
-    // 能源
     renderSources();
-    // 建筑
     renderBuildings();
-    // 科技
     renderTechs();
-    // 事件
     renderEvent();
+    renderLog();
   }
 
   function renderSources() {
@@ -147,7 +160,8 @@
     el.innerHTML = DATA.sources.map(s => {
       const unlocked = state.era >= s.era;
       const active = state.sourceId === s.id;
-      return '<div class="src-item ' + (active ? 'active' : '') + '" data-src="' + s.id + '" title="点击查看科学卡">' +
+      const tip = esc(s.card.body) + '<span class="tip-tag">🔖 ' + esc(s.name) + ' ｜ 增长率 +' + (s.growth * 100).toFixed(1) + '%/s ｜ ' + esc(s.unlock) + '</span>';
+      return '<div class="src-item ' + (active ? 'active' : '') + '" data-src="' + s.id + '" data-tip="' + tip + '">' +
         '<span>' + s.icon + ' ' + s.name + '</span>' +
         (unlocked
           ? '<span class="s-growth">+' + (s.growth * 100).toFixed(1) + '%/s</span>'
@@ -157,10 +171,12 @@
     el.querySelectorAll('[data-src]').forEach(d => {
       d.addEventListener('click', () => {
         const s = DATA.sources.find(x => x.id === d.dataset.src);
-        if (state.era >= s.era) state.sourceId = s.id;
-        openCard(s.card.title, s.card.body, '解锁：' + s.unlock + '｜ 增长率 +' + (s.growth * 100).toFixed(1) + '%/s｜来源见卡内');
-        if (state.era >= s.era && state.sourceId !== s.id) log('能源切换：' + s.name, '');
-        render();
+        if (state.era >= s.era && state.sourceId !== s.id) {
+          state.sourceId = s.id;
+          log('能源切换：' + s.name, '');
+        }
+        openCard(s.card.title, s.card.body, '解锁：' + s.unlock + ' ｜ 增长率 +' + (s.growth * 100).toFixed(1) + '%/s');
+        renderStructure();
       });
     });
   }
@@ -171,7 +187,8 @@
       const cost = state.P * b.sec;
       const afford = state.energy >= cost;
       const cnt = state.buildings[b.id] || 0;
-      return '<div class="bld-item" data-bld="' + b.id + '">' +
+      const tip = esc(b.desc) + '<span class="tip-tag">🔖 ' + esc(b.name) + ' ｜ 成本 ' + fmtE(cost) + ' ｜ 效果 功率 +' + b.pct + '%</span>';
+      return '<div class="bld-item" data-bld="' + b.id + '" data-tip="' + tip + '">' +
         '<span>' + b.icon + ' ' + b.name + ' <small class="hint">×' + cnt + '</small></span>' +
         '<span class="b-cost">' + (afford ? '' : '🔒 ') + fmtE(cost) + '</span>' +
         '<span class="b-pct">+' + b.pct + '%</span></div>';
@@ -186,7 +203,7 @@
         state.buildings[b.id] = (state.buildings[b.id] || 0) + 1;
         state.P *= (1 + b.pct / 100);
         log('⛏️ 建造 ' + b.name + '：功率 +' + b.pct + '%', '');
-        render();
+        renderStructure();
       });
     });
   }
@@ -198,16 +215,21 @@
       const bought = !!state.techs[t.id];
       const prereqOk = t.prereq.every(p => state.techs[p]);
       const afford = state.research >= t.cost;
-      const canBuy = visible && !bought && prereqOk && afford;
-      const flag = !visible ? '🔒 未来纪元' : !prereqOk ? '🔒 需前置' : bought ? '✅' : canBuy ? '可购买' : '科研不足';
-      return '<div class="tech-item ' + (bought ? 'bought' : '') + '" data-tech="' + t.id + '" title="点击查看科学卡">' +
+      const flag = !visible ? '🔒 未来纪元' : !prereqOk ? '🔒 需前置' : bought ? '✅' : afford ? '可购买' : '科研不足';
+      const tip = esc(t.card.body) + '<span class="tip-tag">🔖 ' + esc(t.name) + ' ｜ 成本 ' + fmtN(t.cost) + ' 科研点 ｜ 增长率 +' + (t.growth * 100).toFixed(2) + '%/s</span>';
+      return '<div class="tech-item ' + (bought ? 'bought' : '') + '" data-tech="' + t.id + '" data-tip="' + tip + '">' +
         '<span class="t-name">' + t.icon + ' ' + t.name + '</span>' +
         '<span class="t-flag">' + flag + '</span>' +
         '<span class="t-cost">' + (bought ? '' : fmtN(t.cost) + ' 点') + '</span></div>';
     }).join('');
     el.querySelectorAll('[data-tech]').forEach(d => {
+      const t = DATA.techs.find(x => x.id === d.dataset.tech);
+      techDom[t.id] = {
+        el: d,
+        flag: d.querySelector('.t-flag'),
+        cost: d.querySelector('.t-cost'),
+      };
       d.addEventListener('click', () => {
-        const t = DATA.techs.find(x => x.id === d.dataset.tech);
         const visible = state.era >= t.era;
         const prereqOk = t.prereq.every(p => state.techs[p]);
         if (visible && !state.techs[t.id] && prereqOk && state.research >= t.cost) {
@@ -215,9 +237,9 @@
           state.techs[t.id] = true;
           if (t.unlock) state.sourceId = t.unlock;
           log('🧪 科技解锁：' + t.name + (t.unlock ? '（能源：' + DATA.sources.find(s => s.id === t.unlock).name + '）' : ''), '');
-          render();
+          renderStructure();
         } else if (!state.techs[t.id]) {
-          openCard(t.card.title, t.card.body, '成本 ' + fmtN(t.cost) + ' 科研点｜增长率 +' + (t.growth * 100).toFixed(2) + '%/s');
+          openCard(t.card.title, t.card.body, '成本 ' + fmtN(t.cost) + ' 科研点 ｜ 增长率 +' + (t.growth * 100).toFixed(2) + '%/s');
         }
       });
     });
@@ -225,11 +247,9 @@
 
   // ---- 事件 ----
   function scheduleEvent() {
-    // 按纪元顺序排一个待触发事件（每个纪元一个）
     const candidates = DATA.events.filter(e => state.era >= e.eraMin && !state.events[e.id]);
     if (!candidates.length) { state.nextEventTimer = -1; return; }
-    const e = candidates[0];
-    state.nextEventTimer = 18 + Math.random() * 12; // 18-30s 后触发
+    state.nextEventTimer = 18 + Math.random() * 12;
   }
   function renderEvent() {
     const el = $('eventPanel');
@@ -238,15 +258,16 @@
     el.classList.remove('hidden');
     el.innerHTML = '<h3>⚠️ 文明事件：' + ev.name + '</h3>' +
       '<div class="cause-chain">因果链：<br>' + ev.cause.map(c => '▸ ' + c).join('<br>') + '</div>' +
-      ev.options.map((o, i) => '<button class="btn opt-btn" data-opt="' + i + '">' + o.text + '</button>').join('') +
+      ev.options.map((o, i) => '<button class="btn opt-btn" data-opt="' + i + '" data-tip="' + esc(o.result) + '">' + o.text + '</button>').join('') +
       '<div id="eventResult" class="hint" style="margin-top:6px"></div>';
     el.querySelectorAll('[data-opt]').forEach(b => {
       b.addEventListener('click', () => {
         const idx = +b.dataset.opt;
         const opt = ev.options[idx];
         const r = applyEventChoice(ev, opt);
-        $('eventResult').textContent = '结果：' + r;
-        el.querySelectorAll('.opt-btn').forEach(x => x.disabled = true);
+        const rEl = $('eventResult');
+        if (rEl) rEl.textContent = '结果：' + r;
+        el.querySelectorAll('.opt-btn').forEach(x => { x.disabled = true; });
       });
     });
   }
@@ -267,7 +288,7 @@
     state.events[ev.id] = true;
     state.activeEvent = null;
     scheduleEvent();
-    render();
+    renderStructure();
     return res;
   }
 
@@ -275,19 +296,17 @@
   function tryUpgrade() {
     if (state.P < nextTarget(state.era)) return;
     if (state.traitPending) return;
-    state.traitPending = true;
-    // 演出
     const nextEra = DATA.eras[state.era + 1];
     if (!nextEra) { log('🏆 已达到教学段终点 K=0.4！', 'era-log'); return; }
+    state.traitPending = true;
     $('erao-icon').textContent = nextEra.icon;
     $('erao-name').textContent = nextEra.name;
     $('erao-desc').textContent = nextEra.desc;
     $('eraOverlay').classList.remove('hidden');
-    // 抽 3 个特质
     const pool = DATA.traits.slice().sort(() => Math.random() - 0.5).slice(0, 3);
     const tl = $('traitList');
     tl.innerHTML = pool.map(t =>
-      '<div class="trait-item" data-trait="' + t.id + '">' +
+      '<div class="trait-item" data-trait="' + t.id + '" data-tip="' + esc(t.desc + ' ｜ 增长率 +' + (t.growth * 100).toFixed(1) + '%/s（永久）') + '">' +
       '<span class="t-icon">' + t.icon + '</span>' +
       '<div><div class="t-name">' + t.name + '</div><div class="t-desc">' + t.desc + '</div></div>' +
       '<span class="t-growth">+' + (t.growth * 100).toFixed(1) + '%/s</span></div>').join('');
@@ -302,13 +321,56 @@
         $('traitOverlay').classList.add('hidden');
         log('⚜️ 纪元更替 → ' + nextEra.icon + ' ' + nextEra.name + '（特质：' + t.name + '）', 'era-log');
         scheduleEvent();
-        render();
+        renderStructure();
       });
     });
   }
 
+  /* ================= 数值刷新（tick 每帧调用，不重建 DOM） ================= */
+  function refresh() {
+    const k = kOf(state.P);
+    $('kval').textContent = k.toFixed(3);
+    $('kbar-fill').style.width = Math.min(100, Math.max(0, k / 0.4 * 100)) + '%';
+    const reached = state.P >= nextTarget(state.era);
+    $('kbar-next').textContent = reached ? '🎉 可更替！' : '';
+    $('kbar-next').style.cssText = reached ? 'color:#7fe0a8;margin-left:10px;' : '';
+
+    const era = currentEra();
+    $('eraname').textContent = era.icon + ' ' + era.name;
+    $('pval').textContent = fmtP(state.P);
+    $('growthval').textContent = (growthRate() * 100).toFixed(2) + '%/s';
+    $('energyval').textContent = fmtE(state.energy);
+    $('researchval').textContent = fmtN(state.research);
+    const pop = Math.max(1, Math.round(Math.pow(state.P / 1e6, 0.6) * 100));
+    $('popval').textContent = fmtN(pop) + ' 人';
+    $('nexttarget').textContent = 'K ' + (state.era + 1) / 10 + ' · ' + fmtP(nextTarget(state.era));
+
+    const canUp = state.P >= nextTarget(state.era) && !state.traitPending && state.era < 4;
+    $('eraupgrade-box').classList.toggle('hidden', !canUp);
+
+    // 科技 flag 局部刷新（不重建）
+    for (const id in techDom) {
+      const t = DATA.techs.find(x => x.id === id);
+      const d = techDom[id];
+      if (!t || !d) continue;
+      const visible = state.era >= t.era;
+      const bought = !!state.techs[id];
+      const prereqOk = t.prereq.every(p => state.techs[p]);
+      const afford = state.research >= t.cost;
+      d.el.classList.toggle('bought', bought);
+      d.flag.textContent = !visible ? '🔒 未来纪元' : !prereqOk ? '🔒 需前置' : bought ? '✅' : afford ? '可购买' : '科研不足';
+      d.cost.textContent = bought ? '' : fmtN(t.cost) + ' 点';
+    }
+  }
+
+  function renderLog() {
+    const el = $('log');
+    el.innerHTML = state.log.map(l =>
+      '<div class="' + (l.cls || '') + '">[' + new Date(l.t).toLocaleTimeString() + '] ' + l.msg + '</div>').join('');
+  }
+
   // ---- 主循环 ----
-  const TICK = 100; // ms
+  const TICK = 100;
   let last = Date.now();
   function tick() {
     const now = Date.now();
@@ -317,47 +379,37 @@
     if (!state.traitPending) {
       const g = growthRate();
       state.P *= (1 + g * dt);
-      state.energy += state.P * 0.2 * dt;   // 20% 产出进储备
+      state.energy += state.P * 0.2 * dt;
       state.research += researchRate() * dt;
     }
-    // 事件调度
     if (state.nextEventTimer > 0) {
       state.nextEventTimer -= dt;
       if (state.nextEventTimer <= 0 && !state.activeEvent && !state.traitPending) {
         const candidates = DATA.events.filter(e => state.era >= e.eraMin && !state.events[e.id]);
-        if (candidates.length) { state.activeEvent = candidates[0]; render(); }
+        if (candidates.length) { state.activeEvent = candidates[0]; renderStructure(); }
       }
     }
-    render();
-    // 自动更替提示
-    if (state.P >= nextTarget(state.era) && !state.traitPending && state.era < 4) {
-      $('eraupgrade-box').classList.remove('hidden');
-    }
-    save();
+    refresh();
   }
   setInterval(tick, TICK);
-  setInterval(() => save(), 5000);
+  setInterval(save, 5000);
 
-  // ---- 事件绑定（非动态） ----
+  // ---- 静态事件绑定 ----
   $('btn-upgrade').addEventListener('click', tryUpgrade);
   $('btn-trait').addEventListener('click', () => { $('traitOverlay').classList.remove('hidden'); });
   $('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('modal').classList.add('hidden'); });
   $('traitOverlay').addEventListener('click', (e) => { if (e.target.id === 'traitOverlay') $('traitOverlay').classList.add('hidden'); });
-  // 重置（双击标题）
   document.querySelector('.title').addEventListener('dblclick', () => { if (confirm('重置进度？')) hardReset(); });
-
-  function renderLog() {
-    const el = $('log');
-    el.innerHTML = state.log.map(l =>
-      '<div class="' + (l.cls || '') + '">[' + new Date(l.t).toLocaleTimeString() + '] ' + l.msg + '</div>').join('');
-  }
 
   // ---- 启动 ----
   load();
   if (state.log.length === 0) {
-    log('🔥 文明诞生于火种。点击左侧能源/科技查看科学卡。', 'era-log');
+    log('🔥 文明诞生于火种。点击左侧能源/科技查看科学卡；悬停可看详情。', 'era-log');
   }
-  renderLog();
-  render();
+  renderStructure();
+  refresh();
   scheduleEvent();
+
+  // ---- 暴露给 scene.js ----
+  window.EXPONENT = { get state() { return state; }, data: DATA, fmtP: fmtP };
 })();

@@ -47,8 +47,17 @@
       <div id="buildList"></div>
     </section>
 
-    <!-- 中：科技树 + 事件 + 日志 -->
+    <!-- 中：主画面 + 科技树 + 事件 + 日志 -->
     <section class="col mid">
+      <div class="scene-wrap">
+        <canvas id="scene" width="620" height="340"></canvas>
+        <div class="scene-hud">
+          <span id="sh-era">🔥 火种</span>
+          <span id="sh-src">⚡ 薪柴</span>
+          <span id="sh-day">🌞 白天</span>
+          <span class="sh-p" id="sh-p">1.00 MW</span>
+        </div>
+      </div>
       <h2>科技树 <span class="hint">（点击购买/查看）</span></h2>
       <div id="techList"></div>
 
@@ -112,7 +121,11 @@
 
   <footer>《文明指数》教学段垂直切片 v0.1 · 数据口径见 README/00 文档</footer>
 
+  <!-- 全局 Tooltip -->
+  <div id="tooltip" class="tooltip hidden"></div>
+
   <script src="data.js"></script>
   <script src="game.js"></script>
+  <script src="scene.js"></script>
 </body>
 </html>
