@@ -1,0 +1,22 @@
+# 中间产物：数据核实轮抓取的网页/接口缓存（不应入库）
+*.html
+*.pdf
+*.json
+owid_energy_data.csv
+owid_pec.csv
+extract_*.ps1
+parse_*.ps1
+reconstruct_*.ps1
+tmp_*.ps1
+
+# 系统/编辑器
+Thumbs.db
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# 运行产物（原型数据可选择性入库，先排除）
+原型/*.csv
+__pycache__/
+*.pyc
