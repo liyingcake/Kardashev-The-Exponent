@@ -142,3 +142,40 @@ footer { text-align:center; color:#4d5f8a; font-size:11px; padding:16px; }
 }
 .tooltip b { color:#53d8ff; }
 .tooltip .tip-tag { color:#ffd97a; display:block; margin-top:4px; font-size:11px; }
+
+/* ================= 节点图（方案 B） ================= */
+.scene-sm canvas { height:auto; }
+.graph-wrap { position:relative; border:1px solid #1d2f55; border-radius:10px; overflow:hidden; margin-bottom:8px; }
+#graph { display:block; width:100%; height:auto; background:#060b1c; }
+.graph-hint { position:absolute; bottom:6px; left:10px; right:10px; font-size:11px; color:#7184af; pointer-events:none; text-shadow:0 1px 3px #000; }
+
+/* 仪表盘 */
+.dash { display:flex; gap:10px; margin-bottom:10px; }
+.dash-item { flex:1; border:1px solid #22345c; border-radius:8px; padding:8px 10px; background:rgba(20,36,72,.4); }
+.dash-item span { display:block; font-size:11px; color:#8fa2cd; }
+.dash-item b { font-size:20px; color:#e8f0ff; font-variant-numeric:tabular-nums; }
+.dash-item small { font-size:11px; display:block; margin-top:2px; }
+
+/* 资源条 */
+#resBars { margin-bottom:8px; }
+.resbar { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12px; }
+.resbar span { width:86px; color:#c6d4f2; }
+.resbar-track { flex:1; height:9px; background:#0a1430; border:1px solid #24406e; border-radius:5px; overflow:hidden; }
+.resbar-fill { height:100%; background:linear-gradient(90deg,#3f8fcf,#53d8ff); transition:width .2s; }
+.resbar b { width:44px; text-align:right; color:#e8f0ff; font-variant-numeric:tabular-nums; }
+
+/* 节点库 palette */
+#palette { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.pal-btn { font-size:12px; padding:6px 5px; text-align:center; }
+.pal-btn.active { border-color:#53d8ff; box-shadow:0 0 8px #53d8ff55; }
+.pal-cost { display:block; font-size:10px; color:#9fe8ff; }
+
+/* 节点信息面板 */
+.ni-head { font-size:14px; margin-bottom:6px; }
+.ni-on { color:#7fe0a8; }
+.ni-off { color:#ff8a5d; }
+.ni-row { font-size:12px; color:#c6d4f2; padding:3px 0; display:flex; align-items:center; gap:6px; }
+.btn-mini { width:auto; padding:1px 8px; font-size:13px; }
+
+/* 科技列表（左栏紧凑） */
+#techList .tech-item { padding:5px 7px; margin:3px 0; }

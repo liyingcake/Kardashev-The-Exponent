@@ -57,11 +57,11 @@
   const clamp255 = (c) => c.map(v => Math.round(Math.max(0, Math.min(255, v))));
 
   function drawScene(t) {
-    const ex = window.EXPONENT;
-    if (!ex) { requestAnimationFrame(drawScene); return; }
-    const st = ex.state;
-    const era = ex.data.eras[st.era];
-    const src = ex.data.sources.find(s => s.id === st.sourceId) || ex.data.sources[0];
+    const ex = window.EXP;
+    if (!ex || !ex.game) { requestAnimationFrame(drawScene); return; }
+    const st = ex.game.state;
+    const era = DATA.eras[st.era] || DATA.eras[0];
+    const src = ex.game.dominantSource() || DATA.nodes.campfire;
 
     const dayPhase = ((t % DAY_CYCLE) / DAY_CYCLE);         // 0..1（太阳一整天）
     const day = Math.sin(dayPhase * Math.PI);                // 0=夜 .. 1=正午
@@ -186,14 +186,13 @@
     document.getElementById('sh-src').textContent = '⚡ ' + src.name;
     document.getElementById('sh-day').textContent = dayLabel;
     document.getElementById('sh-p').textContent = ex.fmtP(st.P);
-
     requestAnimationFrame(drawScene);
   }
 
   function drawSource(src, t, st) {
     const gx = W * 0.5, gy = H * 0.78;
     switch (src.id) {
-      case 'fire': {
+      case 'campfire': {
         const flick = Math.sin(t / 90) * 3;
         const glow = ctx.createRadialGradient(gx, gy - 12, 2, gx, gy - 12, 30);
         glow.addColorStop(0, 'rgba(255,140,40,0.75)');
@@ -223,7 +222,7 @@
         ctx.beginPath(); ctx.arc(ox + 13, gy - 8, 5, 0, Math.PI * 2); ctx.fill();
         break;
       }
-      case 'waterwheel': {
+      case 'watermill': {
         const ang = t / 700;
         ctx.strokeStyle = '#7a5230'; ctx.lineWidth = 4;
         ctx.beginPath(); ctx.arc(gx, gy - 8, 22, 0, Math.PI * 2); ctx.stroke();
