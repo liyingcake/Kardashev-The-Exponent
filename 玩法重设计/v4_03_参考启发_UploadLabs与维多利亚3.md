@@ -15,6 +15,19 @@
 - **管线形态**：`download（下载）→ process（处理）→ upload（上传）` 的文件流，与 v4 的"采集→加工→输出"同构。
 - **成长系统**：Research tree 解锁 game-changing nodes；AGI（人工智能）通过"喂文件→学习→生成更好文件"提升收益——类似文明的"乘数"成长。
 
+### 0.1 深层机制（2.2 更新日志 + 四大系统，2026-08-13 二次核实）
+
+- **文件修饰符（modifier）系统**——这是"通配符/抽象概念"的直接来源：
+  - 文件是抽象载体，携带 `quality`（品质）、`size`（大小）、`compression`（压缩，-25% 大小/次）、`enhancement`（增强，+1 品质 & +100% 大小/次）等修饰符，可叠加至 3 次。
+  - 节点按"修饰符规则"匹配与处理文件，而非按具体名字——例如 "Requests for compressed files now requires files with 3 compression modifiers"（任务要求带 3 个压缩修饰符的文件）。
+- **四大系统**（官方 About 段落）：
+  1. **Research**：扫描文件解锁科技树，得到 game-changing nodes。
+  2. **Hack**：入侵组织，获取情报、干扰敌方系统、获取资源。
+  3. **Code**：提交代码获得贡献者；通过代码优化、开发应用、编程驱动实现"精确调优与自动化"。
+  4. **AI Development**：喂文件给 AI 学习 → AI 生成更好文件 → 迈向 AGI（通用人工智能），是"克服宇宙危机"的关键一步。
+- **标签**：Automation / Hacking / Economy / 2D / Resource Management / Sci-fi / Sandbox / Relaxing / Mining / Futuristic。
+- **工业机器**：Copper Miner / Silicon Miner / Excavator / Oil Pump / Factory（工厂机器，曾有节点上限后被移除）。
+
 ---
 
 ## 1. 从《Upload Labs》（节点·供需·联系）得到的启发

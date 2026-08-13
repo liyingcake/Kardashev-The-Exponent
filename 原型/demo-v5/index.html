@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明指数 · 节点窗口 v5</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="title">文明指数 <span class="sub">Kardashev: The Exponent · 节点窗口 v5</span></div>
+    <div class="kbar-wrap">
+      <div class="kbar-label">K <span id="kval">0.000</span> ｜ <span id="eraname">🔥 火种</span> <span class="hint">（节点是窗口，流是标签，规则是通配符，参数是权重）</span></div>
+      <div class="kbar"><div class="kbar-fill" id="kbar-fill"></div></div>
+      <div class="kbar-targets">
+        <span style="left:0%">0.0</span><span style="left:25%">0.1 农耕</span>
+        <span style="left:50%">0.2</span><span style="left:75%">0.3</span>
+        <span style="left:100%">0.4 工业</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 左栏：节点窗口列表 -->
+    <section class="col left">
+      <h2>文明状态</h2>
+      <div class="stat-row"><span>🔆 有用能量流</span><b id="pval">0 W</b></div>
+      <div class="stat-row"><span>👥 人口</span><b id="popval">—</b></div>
+      <div class="stat-row"><span>🧪 科研</span><b id="researchval">—</b></div>
+
+      <h2>节点窗口</h2>
+      <button id="btn-add-window" class="btn btn-gold">＋ 新建加工窗口</button>
+      <div id="nodeList"></div>
+
+      <h2>国策 <span class="hint">（至多 2 条）</span></h2>
+      <div id="creedList"></div>
+
+      <h2>科技 <span class="hint">（自动研发）</span></h2>
+      <div id="techList"></div>
+
+      <h2>里程碑</h2>
+      <div class="panel">
+        <div class="ni-row">🎯 目标 <b id="milestoneTarget" style="color:#ffd97a">—</b></div>
+        <div class="resbar-track"><div class="resbar-fill" id="milestoneBar" style="width:0%"></div></div>
+        <div id="eraupgrade-box" class="hidden" style="margin-top:8px">
+          <button id="btn-upgrade-era" class="btn btn-gold">⚜️ 纪元更替</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 中栏：窗口配置面板 -->
+    <section class="col mid">
+      <h2>🪟 节点窗口 · 配置</h2>
+      <div class="panel" id="nodePanel"><p class="hint">点左侧一个窗口展开配置。</p></div>
+
+      <h2>🔀 抽象流 · 库存</h2>
+      <div id="streamList"></div>
+    </section>
+
+    <!-- 右栏：逆熵链示意 -->
+    <section class="col right">
+      <h2>🧭 逆熵链</h2>
+      <div class="pipeline">
+        <div class="stage"><div class="st-icon">⛏️</div><div class="st-name">采集</div><div class="st-hint">matter:raw<br>energy:raw</div></div>
+        <div class="arrow">→</div>
+        <div class="stage"><div class="st-icon">🔥</div><div class="st-name">加工</div><div class="st-hint">*:raw<br>→ energy:useful</div></div>
+        <div class="arrow">→</div>
+        <div class="stage"><div class="st-icon">🏘️</div><div class="st-name">消费</div><div class="st-hint">energy:useful<br>→ info:useful</div></div>
+        <div class="arrow">→</div>
+        <div class="stage"><div class="st-icon">🗃️</div><div class="st-name">收集</div><div class="st-hint">K 指数</div></div>
+      </div>
+
+      <h2>通配符语法</h2>
+      <div class="panel hint">
+        <code>*</code> 任意 ｜ <code>matter:*</code> 任意物质 ｜ <code>*:raw</code> 任意原料 ｜ <code>energy:useful</code> 精确
+      </div>
+      <p class="hint">节点用通配符声明"吃什么/产什么"。改通配符 = 改变节点行为；拖权重 = 调逆熵效率与吞吐。</p>
+    </section>
+  </main>
+
+  <!-- 日志 -->
+  <div id="logBox" class="log-box">
+    <div class="log-head" id="btnLogToggle">📜 编年史日志 <span class="log-arrow">▾</span></div>
+    <div id="logList" class="log-list"></div>
+  </div>
+  <div id="debugBox" class="debug-box">
+    <div class="debug-head" id="btnDebugToggle">⚙ 调试 <span class="log-arrow">▾</span></div>
+    <div class="debug-body">
+      <div class="debug-row">
+        <button id="btn-save" class="btn">💾 保存</button>
+        <button id="btn-reset" class="btn">♻️ 重置</button>
+        <button id="btn-cheat" class="btn">🔆 +资源</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
