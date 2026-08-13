@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明指数 · 可视化节点 v6</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="title">文明指数 <span class="sub">Kardashev: The Exponent · 可视化节点 v6</span></div>
+    <div class="kbar-wrap">
+      <div class="kbar-label">K <span id="kval">0.000</span> ｜ <span id="eraname">🔥 火种</span> <span class="hint">（点节点 → 下面调窗口）</span></div>
+      <div class="kbar"><div class="kbar-fill" id="kbar-fill"></div></div>
+      <div class="kbar-targets">
+        <span style="left:0%">0.0</span><span style="left:25%">0.1 农耕</span>
+        <span style="left:50%">0.2</span><span style="left:75%">0.3</span>
+        <span style="left:100%">0.4 工业</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 左栏：状态 + 建造 + 国策 + 科技 -->
+    <section class="col left">
+      <h2>文明状态</h2>
+      <div class="stat-row"><span>🔆 有用能量流</span><b id="pval">0 W</b></div>
+      <div class="stat-row"><span>👥 人口</span><b id="popval">—</b></div>
+      <div class="stat-row"><span>🧪 科研</span><b id="researchval">—</b></div>
+
+      <h2>新建窗口</h2>
+      <button id="btn-add-process" class="btn btn-gold">＋ 加工窗口（逆熵转化）</button>
+
+      <h2>国策 <span class="hint">（至多 2 条）</span></h2>
+      <div id="creedList"></div>
+
+      <h2>科技 <span class="hint">（自动研发）</span></h2>
+      <div id="techList"></div>
+
+      <h2>里程碑</h2>
+      <div class="panel">
+        <div class="ni-row">🎯 目标 <b id="milestoneTarget" style="color:#ffd97a">—</b></div>
+        <div class="resbar-track"><div class="resbar-fill" id="milestoneBar" style="width:0%"></div></div>
+        <div id="eraupgrade-box" class="hidden" style="margin-top:8px">
+          <button id="btn-upgrade-era" class="btn btn-gold">⚜️ 纪元更替</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 中栏：演示图（上） + 节点操作窗口（下） -->
+    <section class="col mid">
+      <div class="graph-wrap">
+        <canvas id="graph" width="1060" height="520"></canvas>
+        <div class="graph-hint">演示图：窗口式节点 = 标题栏 + 数据 + 输入/输出端口。点节点，在下面调它。</div>
+      </div>
+      <div id="opsPanel" class="ops-panel">
+        <div class="ops-placeholder">👆 点击上面演示图中的节点，这里会出现它的操作窗口。</div>
+      </div>
+    </section>
+
+    <!-- 右栏：流库存 + 逆熵链 -->
+    <section class="col right">
+      <h2>🔀 流动中的流</h2>
+      <div id="streamList"></div>
+
+      <h2>🧭 逆熵链</h2>
+      <div class="chain-list">
+        <div class="chain-step" style="border-color:#2f8f4f"><span>⛏️ 采集</span><i>物质·原料</i></div>
+        <div class="chain-arrow">↓</div>
+        <div class="chain-step" style="border-color:#c84848"><span>🔥 加工</span><i>逆熵·产废热</i></div>
+        <div class="chain-arrow">↓</div>
+        <div class="chain-step" style="border-color:#8f6fd8"><span>🏘️ 消费</span><i>产人·科技</i></div>
+        <div class="chain-arrow">↓</div>
+        <div class="chain-step" style="border-color:#ffd97a"><span>🗃️ 收集</span><i>K 指数</i></div>
+      </div>
+
+      <h2>通配符</h2>
+      <div class="panel hint">
+        <code>✦</code> 任意 ｜ <code>任意物质</code> ｜ <code>任意原料</code> ｜ <code>可用能量</code> 精确
+      </div>
+    </section>
+  </main>
+
+  <!-- 日志 -->
+  <div id="logBox" class="log-box">
+    <div class="log-head" id="btnLogToggle">📜 编年史日志 <span class="log-arrow">▾</span></div>
+    <div id="logList" class="log-list"></div>
+  </div>
+  <div id="debugBox" class="debug-box">
+    <div class="debug-head" id="btnDebugToggle">⚙ 调试 <span class="log-arrow">▾</span></div>
+    <div class="debug-body">
+      <div class="debug-row">
+        <button id="btn-save" class="btn">💾 保存</button>
+        <button id="btn-reset" class="btn">♻️ 重置</button>
+        <button id="btn-cheat" class="btn">🔆 +资源</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+  <script src="graph.js"></script>
+</body>
+</html>
