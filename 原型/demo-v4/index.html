@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明指数 · 统合乘数 v4</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="title">文明指数 <span class="sub">Kardashev: The Exponent · 统合乘数 v4</span></div>
+    <div class="kbar-wrap">
+      <div class="kbar-label">K <span id="kval">0.000</span> ｜ <span id="eraname">🔥 火种</span> <span class="hint">（节点是工序，不是堆量；能量是利用，不是烧掉）</span></div>
+      <div class="kbar"><div class="kbar-fill" id="kbar-fill"></div></div>
+      <div class="kbar-targets">
+        <span style="left:0%">0.0</span><span style="left:25%">0.1 农耕</span>
+        <span style="left:50%">0.2</span><span style="left:75%">0.3</span>
+        <span style="left:100%">0.4 工业</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 左栏：控制台 -->
+    <section class="col left">
+      <h2>文明状态</h2>
+      <div class="stat-row"><span>⚡ 有用能量流</span><b id="pval">0 W</b></div>
+      <div class="stat-row"><span>👥 人口</span><b id="popval">—</b></div>
+      <div class="stat-row"><span>👷 劳动力</span><b id="laborval">—</b></div>
+      <div class="stat-row"><span>🧪 科研</span><b id="researchval">—</b></div>
+
+      <h2>国策 <span class="hint">（至多 2 条）</span></h2>
+      <div id="creedList"></div>
+
+      <h2>建造 <span class="hint">（盈余投资·熟食计价）</span></h2>
+      <div id="buildList"></div>
+
+      <h2>科技 <span class="hint">（自动研发）</span></h2>
+      <div id="techList"></div>
+
+      <h2>里程碑</h2>
+      <div class="panel">
+        <div class="ni-row">🎯 目标 <b id="milestoneTarget" style="color:#ffd97a">—</b></div>
+        <div class="resbar-track"><div class="resbar-fill" id="milestoneBar" style="width:0%"></div></div>
+        <div id="eraupgrade-box" class="hidden" style="margin-top:8px">
+          <button id="btn-upgrade-era" class="btn btn-gold">⚜️ 纪元更替</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 中栏：经济窗口（统合的核心） -->
+    <section class="col mid">
+      <h2>🗔 经济窗口 · 产业链</h2>
+
+      <!-- 管线图 -->
+      <div class="pipeline">
+        <div class="stage gather">
+          <div class="st-icon">🌲🥬</div>
+          <div class="st-name">采集</div>
+          <div class="st-rate">生食 <b id="flowRaw">0/s</b><br>木柴 <b id="flowWood">0/s</b></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage process">
+          <div class="st-icon">🔥</div>
+          <div class="st-name">加工</div>
+          <div class="st-rate">熟食 <b id="flowCooked">0/s</b></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage settle">
+          <div class="st-icon">🏘️</div>
+          <div class="st-name">定居点</div>
+          <div class="st-rate">消费 <b id="flowConsume">0/s</b><br>盈余 <b id="flowSurplus">0/s</b></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage collect">
+          <div class="st-icon">🗃️</div>
+          <div class="st-name">收集台</div>
+          <div class="st-rate" id="supplyState">—</div>
+        </div>
+      </div>
+
+      <!-- 资源库存 -->
+      <h2>资源库存</h2>
+      <div id="res-raw_food" class="resbar"><span>🥬 生食</span><div class="resbar-track"><div class="resbar-fill" style="width:0%"></div></div><b>0</b></div>
+      <div id="res-wood" class="resbar"><span>🪵 木柴</span><div class="resbar-track"><div class="resbar-fill" style="width:0%"></div></div><b>0</b></div>
+      <div id="res-cooked_food" class="resbar"><span>🍲 熟食</span><div class="resbar-track"><div class="resbar-fill" style="width:0%"></div></div><b>0</b></div>
+
+      <!-- 小乘数（可分解） -->
+      <h2>⚡ 文明效率 · 小乘数</h2>
+      <div class="panel multiplier">
+        <div class="m-total">总乘数 <b id="mTotal">×1.00</b></div>
+        <div class="m-row" id="mInteg">整合 ×1.00</div>
+        <div class="m-row" id="mScale">规模 ×1.00</div>
+        <div class="m-row" id="mTech">技术 ×1.00</div>
+        <div class="m-row" id="mCreed">国策 ×1.00</div>
+      </div>
+    </section>
+
+    <!-- 右栏：收集台（收集节点 = 汇总产出 + 乘数名片） -->
+    <section class="col right">
+      <h2>🗃️ 收集台 <span class="hint">（汇总节点）</span></h2>
+      <div class="panel collect-panel">
+        <div class="c-row"><span>👷 劳动力</span><b id="collectLabor">—</b></div>
+        <div class="c-row"><span>🧪 科技点</span><b id="collectTech">—</b></div>
+        <div class="c-row"><span>⚡ 有用能量流</span><b id="collectP">—</b></div>
+        <div class="c-row"><span>🔥 利用 EROI</span><b id="collectEroi">—</b></div>
+      </div>
+      <p class="hint">收集台把整条产业链的产出统合成一个窗口。它的价值 = 你整合得好不好，而不是你堆了多少。</p>
+    </section>
+  </main>
+
+  <!-- 日志 -->
+  <div id="logBox" class="log-box">
+    <div class="log-head" id="btnLogToggle">📜 编年史日志 <span class="log-arrow">▾</span></div>
+    <div id="logList" class="log-list"></div>
+  </div>
+  <div id="debugBox" class="debug-box">
+    <div class="debug-head" id="btnDebugToggle">⚙ 调试 <span class="log-arrow">▾</span></div>
+    <div class="debug-body">
+      <div class="debug-row">
+        <button id="btn-save" class="btn">💾 保存</button>
+        <button id="btn-reset" class="btn">♻️ 重置</button>
+        <button id="btn-cheat" class="btn">🍲 +资源</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
