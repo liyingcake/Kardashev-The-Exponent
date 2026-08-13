@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明指数 · 上帝视角 v3</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 危机横幅（弹出式，裁决型） -->
+  <div id="eventBanner" class="event-banner hidden"></div>
+
+  <header>
+    <div class="title">文明指数 <span class="sub">Kardashev: The Exponent · 上帝视角 v3</span></div>
+    <div class="kbar-wrap">
+      <div class="kbar-label">K <span id="kval">0.000</span> ｜ <span id="eraname">🔥 火种</span> <span class="hint">（你是引导者，不是工匠）</span></div>
+      <div class="kbar"><div class="kbar-fill" id="kbar-fill"></div></div>
+      <div class="kbar-targets">
+        <span style="left:0%">0.0 火种</span><span style="left:25%">0.1 农耕</span>
+        <span style="left:50%">0.2 青铜</span><span style="left:75%">0.3 前工业</span>
+        <span style="left:100%">0.4 工业</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 左栏：状态 + 国策 + 六支柱权重 + 里程碑 -->
+    <section class="col left">
+      <h2>文明状态</h2>
+      <div class="stat-row"><span>⚡ 总功率</span><b id="pval">0 W</b></div>
+      <div class="stat-row"><span>👥 人口</span><b id="popval">—</b></div>
+      <div class="stat-row"><span>👷 劳动力(用/总)</span><b id="laborval">0/0</b></div>
+      <div class="stat-row"><span>🔋 能量池</span><b id="energyval">—</b></div>
+      <div class="stat-row"><span>🧪 科研</span><b id="researchval">—</b></div>
+      <div class="stat-row"><span>🏛️ 文明积累</span><b id="cultureval">—</b></div>
+
+      <h2>资源库存</h2>
+      <div id="res-wood" class="resbar"><span>🪵 薪柴</span><div class="resbar-track"><div class="resbar-fill" style="width:0%"></div></div><b>0</b></div>
+      <div id="res-water" class="resbar"><span>💧 水力</span><div class="resbar-track"><div class="resbar-fill" style="width:0%"></div></div><b>0</b></div>
+
+      <h2>国策 <span class="hint">（至多 2 条）</span></h2>
+      <div id="creedList"></div>
+
+      <h2>文明意志 <span class="hint">（六支柱权重）</span></h2>
+      <div id="pillarList"></div>
+
+      <h2>里程碑</h2>
+      <div class="panel">
+        <div class="ni-row">🎯 目标功率 <b id="milestoneTarget" style="color:#ffd97a">—</b></div>
+        <div class="resbar-track"><div class="resbar-fill" id="milestoneBar" style="width:0%"></div></div>
+        <div class="hint" id="milestoneNext" style="margin-top:4px">—</div>
+        <div id="eraupgrade-box" class="hidden" style="margin-top:8px">
+          <button id="btn-upgrade-era" class="btn btn-gold">⚜️ 纪元更替（选特质）</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 中栏：主画面（世界地图 / 文明解剖图）-->
+    <section class="col mid">
+      <div class="view-tabs">
+        <button id="tab-map" class="tab active">🗺️ 世界地图</button>
+        <button id="tab-graph" class="tab">🕸️ 文明解剖图</button>
+      </div>
+      <div class="graph-wrap">
+        <canvas id="map" width="640" height="460"></canvas>
+        <canvas id="graph" width="640" height="460" class="hidden"></canvas>
+        <div class="graph-hint">世界地图：观察文明生长、探索迷雾区域。点右侧区域可设为探索焦点。</div>
+      </div>
+      <div class="dash">
+        <div class="dash-item"><span>链 EROI（可持续 ≥3）</span><b id="eroiVal">—</b><small id="eroiState"></small></div>
+        <div class="dash-item"><span>供给</span><b id="supplyVal" style="font-size:16px">—</b></div>
+        <div class="dash-item"><span>文明规模</span><b id="nodeVal" style="font-size:16px">—</b></div>
+      </div>
+    </section>
+
+    <!-- 右栏：探索 + 节点库 + 科技 + 节点详情 -->
+    <section class="col right">
+      <h2>探索世界 <span class="hint">（点选设焦点）</span></h2>
+      <div id="regionList"></div>
+
+      <h2>文明图鉴 <span class="hint">（自动解锁）</span></h2>
+      <div id="palette"></div>
+
+      <h2>科技 <span class="hint">（自动研发）</span></h2>
+      <div id="techList"></div>
+
+      <h2>节点详情</h2>
+      <div class="panel" id="nodePanel"><p class="hint">👆 在「文明解剖图」里点节点查看详情。</p></div>
+    </section>
+  </main>
+
+  <!-- 日志（可折叠）-->
+  <div id="logBox" class="log-box">
+    <div class="log-head" id="btnLogToggle">📜 编年史日志 <span class="log-arrow">▾</span></div>
+    <div id="logList" class="log-list"></div>
+  </div>
+  <div id="debugBox" class="debug-box">
+    <div class="debug-head" id="btnDebugToggle">⚙ 调试 <span class="log-arrow">▾</span></div>
+    <div class="debug-body">
+      <div class="debug-row">
+        <button id="btn-save" class="btn">💾 保存</button>
+        <button id="btn-export" class="btn">📤 导出</button>
+        <button id="btn-import" class="btn">📥 导入</button>
+      </div>
+      <div class="debug-row">
+        <button id="btn-reset" class="btn">♻️ 完整重置</button>
+        <button id="btn-cheat-e" class="btn">⚡ +能量</button>
+        <button id="btn-cheat-r" class="btn">🧪 +科研</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 纪元演出 -->
+  <div id="eraOverlay" class="era-overlay hidden">
+    <div class="era-veil"></div>
+    <div class="era-content">
+      <div class="era-icon" id="erao-icon">🔥</div>
+      <div class="era-big" id="erao-name">农耕</div>
+      <div class="era-desc" id="erao-desc"></div>
+      <button id="btn-trait" class="btn btn-gold" onclick="document.getElementById('traitOverlay').classList.remove('hidden')">选择文明特质 →</button>
+    </div>
+  </div>
+  <div id="traitOverlay" class="modal hidden">
+    <div class="modal-box">
+      <h2>文明特质 · 选其一（永久）</h2>
+      <div id="traitList" class="trait-list"></div>
+      <p class="hint">特质永久生效；文明印记保留。</p>
+    </div>
+  </div>
+  <div id="modal" class="modal hidden">
+    <div class="modal-box" id="modal-box"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+  <script src="map.js"></script>
+  <script src="graph.js"></script>
+</body>
+</html>
